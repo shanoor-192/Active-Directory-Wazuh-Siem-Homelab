@@ -26,7 +26,7 @@ To maintain strict lab isolation while allowing controlled access for OS updates
 2. **Subnet Migration & Troubleshooting:** Migrated all VMs from a `10.x.x.x` private range to `192.168.126.0/24` and resolved domain-trust credential failures during UAC elevation prompts via local administrator remediation.
 3. **Log Ingestion & Event Verification:** Verified end-to-end telemetry by generating baseline security events (such as failed authentication attempts) and confirming agent registration and log visibility in the Wazuh dashboard.
 
-![End-to-End Failed Login Telemetry Verification](screenshots/wazuh-failed-login-alert.png)
+![End-to-End Failed Login Telemetry Verification](screenshots/wazuh-failed-login-alert.jpg)
 *Figure 3: Live end-to-end telemetry verification showing a simulated domain authentication failure for sample user `Darius` on `Desktop01` (`192.168.126.61`) alongside the corresponding Windows Event ID `4625` alert ingested on `Kali-AttackerNSiem` (`192.168.126.25`).*
    
 4. **Patch & Ticket Workflows:** Utilized Action1 for endpoint patch management and vulnerability remediation alongside Jira for end-user ticket workflow simulations.
