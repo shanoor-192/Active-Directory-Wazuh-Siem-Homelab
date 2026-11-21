@@ -27,8 +27,9 @@ This guide documents the end-to-end deployment of the **Action1** endpoint manag
    ```
 3. Accept the host key prompt (`yes`) and enter the `ubuntuvictim` account password to complete the transfer.
    ![Kali SCP Transfer and Ping Verification](../screenshots/02-kali-scp-transfer.png)
-4. **Wazuh SIEM Verification (`sshd`):** In Wazuh Threat Hunting (`deb64linux_agent`), verify that the incoming SCP session triggered **Rule `5715`** (`sshd: authentication success`), logging source IP `192.168.126.25` authenticating as `ubuntuvictim`.
+4. **Wazuh SIEM Verification (`sshd`):** In Wazuh Threat Hunting (`deb64linux_agent`), verify that the incoming SCP session triggered **Rule `5715`** (`sshd: authentication success`, mapped to **MITRE ATT&CK `T1078` & `T1021`** – *Valid Accounts, Remote Services*), logging source IP `192.168.126.25` authenticating as `ubuntuvictim`.
    ![Wazuh SSHD Authentication Success Log](../screenshots/03-wazuh-sshd-auth-success.png)
+   ![Wazuh SSHD Rule 5715 Metadata](../screenshots/03b-wazuh-sshd-auth-success-rule.png)
 
 ---
 
@@ -50,10 +51,12 @@ This guide documents the end-to-end deployment of the **Action1** endpoint manag
 3. Confirm that `dpkg` unpacks `action1-agent` (`1.67.82.1`) and enables/starts `action1_agent.service`.
    ![Ubuntu Action1 Agent Installation Output](../screenshots/05-ubuntu-apt-install-action1.png)
 4. **Wazuh SIEM Verification (`sudo` & `dpkg`):** Inspect the Wazuh alerts generated during staging and installation:
-   - **Rule `5402` (`Successful sudo to ROOT executed`):** Captures `ubuntuvictim` invoking `/usr/bin/apt update` with root privileges.
+   - **Rule `5402` (`Successful sudo to ROOT executed`, mapped to MITRE ATT&CK `T1548.003` – *Sudo and Sudo Caching*):** Captures `ubuntuvictim` invoking `/usr/bin/apt update` with `root` privileges.
      ![Wazuh Sudo Apt Update Log](../screenshots/06-wazuh-sudo-apt-update.png)
-   - **Rule `2902` (`New dpkg (Debian Package) installed`):** Parses `/var/log/dpkg.log` to confirm `status installed action1-agent:amd64 1.67.82.1`.
+     ![Wazuh Sudo Apt Update Rule 5402 Metadata](../screenshots/06b-wazuh-sudo-apt-update-rule.png)
+   - **Rule `2902` (`New dpkg (Debian Package) installed.`):** Parses `/var/log/dpkg.log` to confirm `status installed action1-agent:amd64 1.67.82.1`.
      ![Wazuh DPKG Action1 Install Log](../screenshots/07-wazuh-dpkg-action1-installed.png)
+     ![Wazuh DPKG Rule 2902 Metadata](../screenshots/07b-wazuh-dpkg-action1-installed-rule.png)
 
 ---
 
@@ -63,7 +66,7 @@ This guide documents the end-to-end deployment of the **Action1** endpoint manag
 2. Select `ubuntuvictim` and click **Deploy Updates** to launch the `"Deploy Updates: All"` automation. Monitor **Automation > History** as Action1 queues (`Pending`), downloads, and installs the missing packages (`gir1.2-javascriptcoregtk-4.1`, `gir1.2-webkit2-4.1`, `libjavascriptcoregtk`, and `ubuntu-drivers-common`).
    ![Action1 Automation History Pending](../screenshots/09-action1-automation-pending.png)
    ![Action1 Automation History Completed](../screenshots/10-action1-automation-completed.png)
-3. **Wazuh Vulnerability Detector Correlation:** During the patching window, Wazuh's vulnerability detector module simultaneously flags kernel-level CVEs (such as `CVE-2026-99227`, CVSS `7.8` High, affecting `linux-image-7.0.0-44-generic`) on `deb64linux_agent`, demonstrating dual visibility between Action1 patch management and Wazuh vulnerability scanning.
+3. **Wazuh Vulnerability Detector Correlation:** During the patching window, Wazuh's vulnerability detector module simultaneously flags kernel-level CVEs (such as `CVE-2026-99227`, base score `7.8`, affecting `linux-image-7.0.0-44-generic`) on `deb64linux_agent`, demonstrating dual visibility between Action1 patch management and Wazuh vulnerability scanning.
    ![Wazuh Vulnerability Detector CVE Alert](../screenshots/11-wazuh-cve-vulnerability-alert.png)
 4. **Local `apt` History Verification:** On `ubuntuvictim`, inspect `/var/log/apt/history.log` (`tail -n 30 /var/log/apt/history.log`) to confirm both the manual `action1-agent` installation and the automated `--only-upgrade` commands executed by Action1.
    ![Ubuntu APT History Log Verification](../screenshots/12-ubuntu-apt-history-log.png)
@@ -76,7 +79,8 @@ This guide documents the end-to-end deployment of the **Action1** endpoint manag
 2. Execute the reboot manually on `ubuntuvictim` (`sudo reboot`), wait for the VM to restart, and refresh the Action1 **Endpoints** page to confirm **Status: Connected**, **Reboot: Not required**, and **Missing Updates: Up-to-date**.
    ![Action1 Endpoint Up-to-Date and Reboot Not Required](../screenshots/14-action1-post-reboot-clean.png)
 3. **Wazuh SIEM Reboot & Agent Lifecycle Verification:** Confirm the reboot sequence across Wazuh alerts on `deb64linux_agent`:
-   - **Rule `5402` (`Successful sudo to ROOT executed`):** Logs `ubuntuvictim` executing `/usr/sbin/reboot -i now` (`MITRE ATT&CK T1548.003`).
+   - **Rule `5402` (`Successful sudo to ROOT executed`, mapped to MITRE ATT&CK `T1548.003` – *Sudo and Sudo Caching*):** Logs `ubuntuvictim` executing `/usr/sbin/reboot -i now` as `root`.
      ![Wazuh Sudo Reboot Command Log](../screenshots/15-wazuh-sudo-reboot-log.png)
-   - **Agent Lifecycle & Baseline Checks:** The Threat Hunting event stream records `Wazuh agent stopped` (**Rule `506`**), followed ~58 seconds later by `Wazuh agent started` (**Rule `503`**), `Listened ports status (netstat) changed` (**Rule `533`**), and post-boot `rootcheck` anomaly scans (**Rule `510`**), verifying the endpoint came back online cleanly.
+     ![Wazuh Sudo Reboot Rule 5402 Metadata](../screenshots/15b-wazuh-sudo-reboot-log-rule.png)
+   - **Agent Lifecycle & Baseline Checks:** The Threat Hunting event stream records `Wazuh agent stopped`, followed ~58 seconds later by `Wazuh agent started`, `Listened ports status (netstat) changed`, and post-boot `Host-based anomaly detection event (rootcheck)` checks, verifying the endpoint came back online cleanly.
      ![Wazuh Agent Stop Start and Rootcheck Timeline](../screenshots/16-wazuh-agent-reboot-lifecycle.png)
