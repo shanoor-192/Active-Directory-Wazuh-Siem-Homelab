@@ -13,7 +13,7 @@ To maintain strict lab isolation while allowing controlled access for OS updates
 | Hostname / Agent Name | Operating System | Internal IP (`intnet`) | Wazuh Group | Role & Services |
 | :--- | :--- | :--- | :--- | :--- |
 | **`Kali-AttackerNSiem`** | Kali Linux | `192.168.126.25` | — | Wazuh SIEM Manager & Dashboard |
-| **`deb64linux_agent`** | Ubuntu 26.04 | `192.168.126.50` | `default` | Monitored Linux Endpoint (Wazuh Agent) |
+| **`deb64linux_agent`** | Ubuntu 26.04 | `192.168.126.50` | `default` | Monitored Linux Endpoint (Wazuh Agent, Action1) |
 | **`NJ-DC-01`** | Windows Server 2022 | `192.168.126.60` | `default`, `win_ad` | Domain Controller (AD DS, DNS, GPO, File Share) |
 | **`Desktop01`** | Windows 11 Pro | `192.168.126.61` | `default`, `win_ad` | Domain-Joined Workstation (Wazuh Agent, Action1) |
 | **`Desktop02`** | Windows 11 Pro | `192.168.126.62` | `default`, `win_ad` | Domain-Joined Workstation (Wazuh Agent, Action1) |
@@ -27,16 +27,18 @@ To maintain strict lab isolation while allowing controlled access for OS updates
 3. **Log Ingestion & Event Verification:** Verified end-to-end telemetry by generating baseline security events (such as failed authentication attempts) and confirming agent registration and log visibility in the Wazuh dashboard.
 
 ![End-to-End Failed Login Telemetry Verification](screenshots/wazuh-failed-login-alert.jpg)
-*Figure 3: Live end-to-end telemetry verification showing a simulated domain authentication failure for sample user `Darius` on `Desktop01` (`192.168.126.61`) alongside the corresponding Windows Event ID `4625` alert ingested on `Kali-AttackerNSiem` (`192.168.126.25`).*
+*Figure 2: Live end-to-end telemetry verification showing a simulated domain authentication failure for sample user `Darius` on `Desktop01` (`192.168.126.61`) alongside the corresponding Windows Event ID `4625` alert ingested on `Kali-AttackerNSiem` (`192.168.126.25`).*
    
 4. **Patch & Ticket Workflows:** Utilized Action1 for endpoint patch management and vulnerability remediation alongside Jira for end-user ticket workflow simulations.
 
 ![Wazuh Endpoints Summary and Network Segmentation](screenshots/wazuh-endpoints-network-isolation.png)
-*Figure 2: Wazuh Endpoints dashboard displaying all four registered Windows and Linux agents (`192.168.126.50`–`.62`) and custom `win_ad` grouping, alongside VirtualBox network adapter status confirming `NAT` is disconnected while `intnet` (`192.168.126.25`) remains isolated.*
+*Figure 3: Wazuh Endpoints dashboard displaying all four registered Windows and Linux agents (`192.168.126.50`–`.62`) and custom `win_ad` grouping, alongside VirtualBox network adapter status confirming `NAT` is disconnected while `intnet` (`192.168.126.25`) remains isolated.*
 
 ## Repository Documentation
 * [Troubleshooting: RFC-1918 Subnet Migration & UAC Domain-Trust Error](./troubleshooting/subnet-migration-uac-fix.md)
 * [Deployment Guide: Wazuh Agent Rollout via Active Directory GPO & Orca](./deployment-guides/wazuh-gpo-deployment.md)
+* [Deployment Guide: Action1 Linux Agent Rollout & Wazuh Telemetry Verification](deployment-guides/action1-ubuntu-agent-deployment.md)
+
 
 ## Future Lab Roadmap (Planned Enhancements)
 To expand this environment from centralized SIEM monitoring into a full Security Operations & Incident Response (SOAR/DFIR) lab within a 16GB host RAM budget, the following upgrades are planned:
